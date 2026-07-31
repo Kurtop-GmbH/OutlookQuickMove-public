@@ -11,6 +11,7 @@ namespace OutlookQuickMove
     {
         private readonly FolderPickerOptions options;
         private readonly Func<FolderEnumerationResult> refreshFolders;
+        private readonly OutlookStoreOrder storeOrder;
         private List<FolderCandidate> allFolders;
         private FolderEnumerationWarnings folderWarnings;
         private readonly Dictionary<string, FrequentTarget> frequentByKey;
@@ -38,11 +39,13 @@ namespace OutlookQuickMove
             IEnumerable<FolderCandidate> folders,
             FolderPickerOptions options,
             FolderEnumerationWarnings folderWarnings,
-            Func<FolderEnumerationResult> refreshFolders)
+            Func<FolderEnumerationResult> refreshFolders,
+            OutlookStoreOrder storeOrder)
         {
             this.options = options ?? FolderPickerOptions.ForQuickMove();
             this.folderWarnings = folderWarnings ?? new FolderEnumerationWarnings();
             this.refreshFolders = refreshFolders;
+            this.storeOrder = storeOrder ?? OutlookStoreOrder.Capture(null);
             allFolders = folders == null ? new List<FolderCandidate>() : folders.ToList();
             selectedAction = this.options.InitialAction;
             anchorWindowHandle = GetForegroundWindow();
@@ -63,7 +66,6 @@ namespace OutlookQuickMove
             MaximizeBox = false;
             MinimizeBox = false;
             ShowInTaskbar = false;
-            KeyDown += HandleFormKeyDown;
             ShowIcon = false;
             Deactivate += HandleFormDeactivate;
 
@@ -326,11 +328,12 @@ namespace OutlookQuickMove
             UpdateOkState();
         }
 
-        private static List<FolderPickerRow> BuildRows(IEnumerable<FolderCandidate> folders)
+        private List<FolderPickerRow> BuildRows(IEnumerable<FolderCandidate> folders)
         {
             var rows = new List<FolderPickerRow>();
             foreach (var group in (folders ?? Enumerable.Empty<FolderCandidate>())
-                .GroupBy(folder => folder.StoreId, StringComparer.OrdinalIgnoreCase))
+                .GroupBy(folder => folder.StoreId, StringComparer.OrdinalIgnoreCase)
+                .OrderBy(group => storeOrder.GetPriority(group.FirstOrDefault())))
             {
                 var groupedFolders = group.ToList();
                 if (groupedFolders.Count == 0)
@@ -670,33 +673,38 @@ namespace OutlookQuickMove
             button.ForeColor = SystemColors.ControlText;
         }
 
-        private void HandleFormKeyDown(object sender, KeyEventArgs e)
+        protected override bool ProcessCmdKey(ref Message message, Keys keyData)
         {
-            if (e.KeyCode == Keys.Escape)
+            var keyCode = keyData & Keys.KeyCode;
+            var modifiers = keyData & Keys.Modifiers;
+
+            if (keyCode == Keys.Escape && modifiers == Keys.None)
             {
                 DialogResult = DialogResult.Cancel;
                 Close();
-                e.Handled = true;
-                e.SuppressKeyPress = true;
+                return true;
             }
-            else if (e.KeyCode == Keys.Enter)
+
+            if (keyCode == Keys.Enter && modifiers == Keys.None)
             {
                 ConfirmSelection();
-                e.Handled = true;
-                e.SuppressKeyPress = true;
+                return true;
             }
-            else if (options.ShowActionSelector && e.Control
-                && (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right))
+
+            if (options.ShowActionSelector
+                && modifiers == Keys.Control
+                && (keyCode == Keys.Left || keyCode == Keys.Right))
             {
-                var direction = e.KeyCode == Keys.Left ? -1 : 1;
+                var direction = keyCode == Keys.Left ? -1 : 1;
                 var actionIndex = (int)selectedAction + direction;
                 actionIndex = Math.Max((int)FolderPickerAction.Move, Math.Min(
                     (int)FolderPickerAction.GoToFolder,
                     actionIndex));
                 SetAction((FolderPickerAction)actionIndex);
-                e.Handled = true;
-                e.SuppressKeyPress = true;
+                return true;
             }
+
+            return base.ProcessCmdKey(ref message, keyData);
         }
 
         private void HandleFormDeactivate(object sender, EventArgs e)

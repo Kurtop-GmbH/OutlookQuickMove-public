@@ -224,6 +224,7 @@
     <Compile Include="FrequentTargetStore.cs" />
     <Compile Include="MarkAsReadSetting.cs" />
     <Compile Include="OutlookShortcutManager.cs" />
+    <Compile Include="OutlookStoreOrder.cs" />
     <Compile Include="FolderPickerOptions.cs" />
     <Compile Include="FolderPickerForm.cs">
       <SubType>Form</SubType>

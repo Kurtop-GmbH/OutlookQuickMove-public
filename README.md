@@ -22,6 +22,8 @@ User guide:
   many selected messages.
 - **Cross-account by design** — search and target folders from all enabled Outlook accounts and
   data files; the account is shown as the first component of every result path.
+- **Own mailboxes first** — configured Outlook accounts keep Outlook's account order and appear
+  before additional/shared mailboxes in the result groups.
 - **Fuzzy, relevance-ranked search** — exact and prefix folder-name matches appear first, followed
   by full-path and tolerant subsequence matches.
 - **Direct keyboard workflow** — `Ctrl+M`, type, `Up`/`Down`, `Enter` moves mail; `Ctrl+G` opens the

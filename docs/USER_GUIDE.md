@@ -46,9 +46,11 @@ The tab contains these buttons:
 5. Press `Enter` to move the selected mail items.
 
 The picker searches across all enabled Outlook accounts and data files. It groups matching folders
-under compact account headers and displays the parent path on the right. With an empty search box,
-it shows your recently and frequently used targets. Use `Ctrl+Left` / `Ctrl+Right` to switch
-between `Verschieben`, `Kopieren`, and `Zum Ordner` without leaving the keyboard.
+under compact account headers and displays the parent path on the right. Your configured Outlook
+accounts are listed in Outlook's account order before additional/shared mailboxes. With an empty
+search box, the picker shows your recently and frequently used targets. Use `Ctrl+Left` /
+`Ctrl+Right` to switch between `Verschieben`, `Kopieren`, and `Zum Ordner` without leaving the
+keyboard.
 
 The folder index is cached in memory for 10 minutes and on disk for up to 30 days. Press
 `Aktualisieren` after adding or renaming folders if you need to rebuild it immediately.

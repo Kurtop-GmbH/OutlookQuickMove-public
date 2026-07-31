@@ -346,11 +346,13 @@ namespace OutlookQuickMove
                 bool markAsRead;
                 FolderPickerAction action;
                 FolderEnumerationWarnings folderWarnings;
+                var storeOrder = OutlookStoreOrder.Capture(application);
                 using (var form = new FolderPickerForm(
                     folderResult.Folders,
                     FolderPickerOptions.ForQuickMove(),
                     folderResult.Warnings,
-                    delegate { return RefreshFolderList(application); }))
+                    delegate { return RefreshFolderList(application); },
+                    storeOrder))
                 {
                     if (form.ShowDialog() != DialogResult.OK)
                     {
@@ -649,11 +651,13 @@ namespace OutlookQuickMove
                 string targetEntryId;
                 string targetStoreId;
                 FolderEnumerationWarnings folderWarnings;
+                var storeOrder = OutlookStoreOrder.Capture(application);
                 using (var form = new FolderPickerForm(
                     folderResult.Folders,
                     FolderPickerOptions.ForGoToFolder(),
                     folderResult.Warnings,
-                    delegate { return RefreshFolderList(application); }))
+                    delegate { return RefreshFolderList(application); },
+                    storeOrder))
                 {
                     if (form.ShowDialog() != DialogResult.OK)
                     {
