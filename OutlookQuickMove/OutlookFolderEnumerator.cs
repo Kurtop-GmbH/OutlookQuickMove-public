@@ -20,8 +20,13 @@ namespace OutlookQuickMove
         // holds no COM objects (only strings), so it is safe to cache and reuse for a short window.
         // The cache is invalidated when the enabled-store selection changes (signature mismatch),
         // when it ages past the TTL, or explicitly via InvalidateCache (e.g. after Settings save).
-        private static readonly TimeSpan CacheLifetime = TimeSpan.FromMinutes(2);
-        private static readonly TimeSpan DiskCacheLifetime = TimeSpan.FromMinutes(30);
+        private static readonly TimeSpan CacheLifetime = TimeSpan.FromMinutes(10);
+
+        // Folder trees change far less often than mail. Reuse the persisted index for normal
+        // launches so the picker opens immediately even in profiles with many IMAP/Exchange
+        // stores. Store changes and Settings invalidate it automatically; the picker offers an
+        // explicit refresh for newly created or renamed folders.
+        private static readonly TimeSpan DiskCacheLifetime = TimeSpan.FromDays(30);
         private static readonly object CacheGate = new object();
         private static FolderEnumerationResult cachedResult;
         private static string cachedSignature;

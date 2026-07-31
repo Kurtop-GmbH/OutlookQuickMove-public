@@ -23,13 +23,13 @@ OutlookQuickMove is a VSTO add-in for classic Outlook for Windows. It helps you 
 
 ## Open Quick Move
 
-After installation and restarting Outlook, a `Quick Move` tab appears in the Outlook ribbon.
+After installation and restarting Outlook, a `Schnell verschieben` tab appears in the Outlook ribbon.
 
 ![Quick Move ribbon tab in Outlook](assets/user-guide/02-quick-move-tab.png)
 
 The tab contains these buttons:
 
-- `Quick Move`
+- `Schnell verschieben`
 - `Go to Folder`
 - `Go to Mail Folder`
 - `Undo Quick Move...`
@@ -40,15 +40,20 @@ The tab contains these buttons:
 `Quick Move` moves the currently selected mail items to a target folder.
 
 1. Select one or more mail items in Outlook.
-2. Click `Quick Move`.
-3. The dialog opens with focus in the search box.
-4. Type keywords from the target folder name or path. The folder list filters as you type.
-5. Use the arrow keys to choose a folder, or keep the highlighted result.
-6. Press `Enter`, or click the confirmation button, to move the selected mail items.
+2. Press `Ctrl+M` or click `Schnell verschieben`.
+3. Type keywords from the target account, folder name, or path.
+4. Use `Up` / `Down` to choose a folder.
+5. Press `Enter` to move the selected mail items.
 
-If your Outlook profile has many data files, the first `Quick Move` after restarting Outlook can take longer. The add-in needs to build the folder list. Later openings usually reuse the cache and are faster.
+The picker searches across all enabled Outlook accounts and data files. It groups matching folders
+under compact account headers and displays the parent path on the right. With an empty search box,
+it shows your recently and frequently used targets. Use `Ctrl+Left` / `Ctrl+Right` to switch
+between `Verschieben`, `Kopieren`, and `Zum Ordner` without leaving the keyboard.
 
-Select `Mark as read before moving` if the selected mail should be marked as read before it is moved.
+The folder index is cached in memory for 10 minutes and on disk for up to 30 days. Press
+`Aktualisieren` after adding or renaming folders if you need to rebuild it immediately.
+
+Select `Als gelesen verschieben` if the selected mail should be marked as read before it is moved.
 
 ![Quick Move dialog and filtered folder results](assets/user-guide/03-quick-move-dialog.png)
 
@@ -56,7 +61,7 @@ Select `Mark as read before moving` if the selected mail should be marked as rea
 
 `Go to Folder` jumps to a folder without moving any mail.
 
-1. Click `Go to Folder`.
+1. Press `Ctrl+G` or click `Go to Folder`.
 2. Type folder keywords.
 3. Select the target folder.
 4. Press `Enter`. Outlook switches to that folder.
@@ -110,22 +115,18 @@ Set the value to `0` to stop recording new undo history. Existing history remain
 
 ![Undo History tab in Settings](assets/user-guide/07-settings-undo-history.png)
 
-## Keyboard Shortcut
+## Keyboard Shortcuts
 
-OutlookQuickMove does not register a global shortcut. The recommended shortcut path is Outlook's built-in Quick Access Toolbar, which lets you open a command with `Alt + number`.
+- `Ctrl+M`: open Quick Move with `Verschieben` selected.
+- `Ctrl+G`: open the folder picker in navigation mode.
+- Type, use `Up` / `Down`, then press `Enter`.
+- `Ctrl+Left` / `Ctrl+Right`: switch the action in the unified Quick Move dialog.
+- `Esc`: close the picker without changing anything.
+- Clicking outside the compact picker closes it without changing anything.
 
-1. Open the Quick Access Toolbar drop-down menu.
-2. Click `More Commands...`.
-3. In `Choose commands from`, select `Quick Move Tab`.
-4. Select `Quick Move`, then click `Add >>`.
-5. Click `OK` to save.
-6. Use `Alt + number`, based on the button's position in the Quick Access Toolbar.
-
-For example, if `Quick Move` is the first button in the Quick Access Toolbar, press `Alt + 1` to open it.
-
-![More Commands in the Quick Access Toolbar menu](assets/user-guide/08-add-to-quick-access-toolbar.png)
-
-![Adding Quick Move in the Quick Access Toolbar settings](assets/user-guide/09-quick-access-toolbar-shortcut.png)
+The shortcuts are scoped to the classic Outlook UI thread and are not system-wide. Classic Outlook
+normally uses `Ctrl+M` for Send/Receive; this fork intentionally reserves it for Quick Move. Use
+`F9` for Send/Receive.
 
 ## Screenshot Privacy Check
 

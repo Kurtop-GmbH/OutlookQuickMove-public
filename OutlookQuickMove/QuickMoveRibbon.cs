@@ -18,6 +18,12 @@ namespace OutlookQuickMove
         private const string QuickMoveImageId = "QuickMove32";
         private const string GoToFolderImageId = "GoToFolder32";
         private const string GoToMailFolderImageId = "GoToMailFolder32";
+        private const string QuickMoveTitle = "Schnelles Nachrichtenverschieben";
+        private const string GoToFolderTitle = "Zum Ordner";
+        private const string GoToMailFolderTitle = "Zum Nachrichtenordner";
+        private const string SettingsTitle = "Einstellungen";
+        private const string UndoTitle = "Verschieben rückgängig";
+        private const string LogDetails = "Details stehen im Protokoll: %TEMP%\\OutlookQuickMove.log";
         private static readonly Dictionary<string, string> RibbonImageResources = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             { "QuickMove16", "OutlookQuickMove.Assets.QuickMove16.png" },
@@ -44,31 +50,31 @@ namespace OutlookQuickMove
 <customUI xmlns=""http://schemas.microsoft.com/office/2009/07/customui"" onLoad=""OnRibbonLoad"" loadImage=""LoadImage"">
   <ribbon>
     <tabs>
-      <tab id=""OutlookQuickMoveTab"" label=""Quick Move"" insertAfterMso=""TabMail"">
-        <group id=""OutlookQuickMoveActionsGroup"" label=""Actions"">
+      <tab id=""OutlookQuickMoveTab"" label=""Schnell verschieben"" insertAfterMso=""TabMail"">
+        <group id=""OutlookQuickMoveActionsGroup"" label=""Nachrichten"">
           <button id=""QuickMoveButton""
-                  label=""Quick Move""
+                  label=""Schnell verschieben""
                   size=""large""
                   image=""" + QuickMoveImageId + @"""
                   onAction=""OnQuickMove"" />
           <button id=""QuickJumpButton""
-                  label=""Go to Folder""
+                  label=""Zum Ordner""
                   size=""large""
                   image=""" + GoToFolderImageId + @"""
                   onAction=""OnGoToFolder"" />
           <button id=""QuickJumpSelectedMailFolderButton""
-                  label=""Go to Mail Folder""
+                  label=""Zum Nachrichtenordner""
                   size=""large""
                   image=""" + GoToMailFolderImageId + @"""
                   onAction=""OnGoToSelectedMailFolder"" />
           <button id=""QuickMoveUndoButton""
-                  label=""Undo Quick Move...""
+                  label=""Verschieben rückgängig...""
                   size=""large""
                   imageMso=""Undo""
                   getEnabled=""OnGetUndoEnabled""
                   onAction=""OnUndo"" />
           <button id=""QuickMoveSettingsButton""
-                  label=""Settings""
+                  label=""Einstellungen""
                   size=""large""
                   imageMso=""ApplicationOptionsDialog""
                   onAction=""OnSettings"" />
@@ -113,6 +119,11 @@ namespace OutlookQuickMove
 
         public void OnQuickMove(Office.IRibbonControl control)
         {
+            RunQuickMoveCommand();
+        }
+
+        internal static void RunQuickMoveCommand()
+        {
             try
             {
                 ExecuteQuickMove();
@@ -120,11 +131,20 @@ namespace OutlookQuickMove
             catch (Exception ex)
             {
                 QuickMoveLog.Write("unexpected error.", ex);
-                MessageBox.Show("Quick Move failed unexpectedly. Check the Quick Move log for details.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Die Aktion konnte nicht ausgeführt werden.\n\n" + LogDetails,
+                    QuickMoveTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
         public void OnGoToFolder(Office.IRibbonControl control)
+        {
+            RunGoToFolderCommand();
+        }
+
+        internal static void RunGoToFolderCommand()
         {
             try
             {
@@ -133,7 +153,11 @@ namespace OutlookQuickMove
             catch (Exception ex)
             {
                 QuickMoveLog.Write("go to folder failed unexpectedly.", ex);
-                MessageBox.Show("Go to Folder failed unexpectedly. Check the Quick Move log for details.", "Go to Folder", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Der Ordner konnte nicht geöffnet werden.\n\n" + LogDetails,
+                    GoToFolderTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -146,7 +170,11 @@ namespace OutlookQuickMove
             catch (Exception ex)
             {
                 QuickMoveLog.Write("go to mail folder failed unexpectedly.", ex);
-                MessageBox.Show("Go to Mail Folder failed unexpectedly. Check the Quick Move log for details.", "Go to Mail Folder", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Der Nachrichtenordner konnte nicht geöffnet werden.\n\n" + LogDetails,
+                    GoToMailFolderTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -159,7 +187,11 @@ namespace OutlookQuickMove
             catch (Exception ex)
             {
                 QuickMoveLog.Write("settings failed unexpectedly.", ex);
-                MessageBox.Show("Quick Move settings failed unexpectedly. Check the Quick Move log for details.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Die Einstellungen konnten nicht geöffnet werden.\n\n" + LogDetails,
+                    SettingsTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -190,7 +222,11 @@ namespace OutlookQuickMove
             catch (Exception ex)
             {
                 QuickMoveLog.Write("undo failed unexpectedly.", ex);
-                MessageBox.Show("Undo failed unexpectedly. Check the Quick Move log for details.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    "Der Verschiebevorgang konnte nicht rückgängig gemacht werden.\n\n" + LogDetails,
+                    UndoTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
@@ -235,14 +271,22 @@ namespace OutlookQuickMove
                 explorer = application.ActiveExplorer();
                 if (explorer == null)
                 {
-                    MessageBox.Show("No active Outlook explorer window is available.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Es ist kein aktives Outlook-Fenster verfügbar.",
+                        QuickMoveTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
                 selection = explorer.Selection;
                 if (selection == null || selection.Count == 0)
                 {
-                    MessageBox.Show("Select one or more mail items before using Quick Move.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Bitte zuerst mindestens eine Nachricht auswählen.",
+                        QuickMoveTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
@@ -273,7 +317,11 @@ namespace OutlookQuickMove
 
                 if (selectedMail.Count == 0)
                 {
-                    MessageBox.Show("The current selection does not contain mail items.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Die aktuelle Auswahl enthält keine E-Mail-Nachrichten.",
+                        QuickMoveTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
@@ -285,13 +333,18 @@ namespace OutlookQuickMove
 
                 if (folderResult.Folders.Count == 0)
                 {
-                    MessageBox.Show("No suitable mail folders were found.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        "Es wurden keine geeigneten E-Mail-Ordner gefunden.",
+                        QuickMoveTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                     return;
                 }
 
                 string targetEntryId;
                 string targetStoreId;
                 bool markAsRead;
+                FolderPickerAction action;
                 FolderEnumerationWarnings folderWarnings;
                 using (var form = new FolderPickerForm(
                     folderResult.Folders,
@@ -307,16 +360,33 @@ namespace OutlookQuickMove
                     targetEntryId = form.SelectedFolderEntryId;
                     targetStoreId = form.SelectedFolderStoreId;
                     markAsRead = form.MarkAsReadBeforeMoving;
+                    action = form.SelectedAction;
                     folderWarnings = form.FolderWarnings;
                 }
 
                 if (string.IsNullOrEmpty(targetEntryId) || string.IsNullOrEmpty(targetStoreId))
                 {
-                    MessageBox.Show("Select a target folder before moving mail.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Bitte einen Zielordner auswählen.",
+                        QuickMoveTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
-                MoveSelectedMail(application, selectedMail, targetEntryId, targetStoreId, markAsRead, skippedNonMail, folderWarnings);
+                if (action == FolderPickerAction.GoToFolder)
+                {
+                    ShowGoToFolderEnumerationWarnings(folderWarnings);
+                    NavigateToFolder(application, explorer, targetEntryId, targetStoreId);
+                }
+                else if (action == FolderPickerAction.Copy)
+                {
+                    CopySelectedMail(application, selectedMail, targetEntryId, targetStoreId, skippedNonMail, folderWarnings);
+                }
+                else
+                {
+                    MoveSelectedMail(application, selectedMail, targetEntryId, targetStoreId, markAsRead, skippedNonMail, folderWarnings);
+                }
             }
             finally
             {
@@ -327,6 +397,100 @@ namespace OutlookQuickMove
 
                 ComUtil.Release(selection);
                 ComUtil.Release(explorer);
+            }
+        }
+
+        private static void CopySelectedMail(
+            Outlook.Application application,
+            List<Outlook.MailItem> selectedMail,
+            string targetEntryId,
+            string targetStoreId,
+            int skippedNonMail,
+            FolderEnumerationWarnings folderWarnings)
+        {
+            Outlook.NameSpace session = null;
+            Outlook.MAPIFolder targetFolder = null;
+            try
+            {
+                try
+                {
+                    session = application.Session;
+                    targetFolder = session.GetFolderFromID(targetEntryId, targetStoreId);
+                }
+                catch (Exception ex)
+                {
+                    QuickMoveLog.Write("copy: failed to resolve target folder.", ex);
+                    MessageBox.Show(
+                        "Der gewählte Zielordner ist nicht mehr verfügbar. Bitte die Ordnerliste aktualisieren.",
+                        "Schnell kopieren",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (targetFolder == null)
+                {
+                    return;
+                }
+
+                var copied = 0;
+                var targetIdentity = CreateFolderIdentity(targetFolder);
+                var skippedSameFolder = new List<string>();
+                var failures = new List<string>();
+                var temporaryCopies = new List<string>();
+
+                foreach (var mail in selectedMail)
+                {
+                    var subject = GetMailSubject(mail);
+                    object copiedItem = null;
+                    object placedItem = null;
+                    var sourceCopyCreated = false;
+                    try
+                    {
+                        var source = CaptureSource(mail, subject);
+                        if (IsSameFolder(source, targetIdentity))
+                        {
+                            skippedSameFolder.Add(subject);
+                            continue;
+                        }
+
+                        // Outlook exposes no CopyTo(folder) call. Copy creates a duplicate beside
+                        // the source item; moving that duplicate places it into the chosen store.
+                        // The original item is never modified.
+                        copiedItem = mail.Copy();
+                        var copiedMail = copiedItem as Outlook.MailItem;
+                        if (copiedMail == null)
+                        {
+                            throw new InvalidOperationException("Outlook did not return a mail item from Copy().");
+                        }
+
+                        sourceCopyCreated = true;
+                        placedItem = copiedMail.Move(targetFolder);
+                        copied++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failures.Add(subject);
+                        if (sourceCopyCreated)
+                        {
+                            temporaryCopies.Add(subject);
+                        }
+
+                        QuickMoveLog.Write("copy: failed to place '" + subject + "' in the target folder.", ex);
+                    }
+                    finally
+                    {
+                        ComUtil.Release(placedItem);
+                        ComUtil.Release(copiedItem);
+                    }
+                }
+
+                ShowCopySummaryIfNeeded(copied, skippedNonMail, skippedSameFolder, failures, temporaryCopies, folderWarnings);
+            }
+            finally
+            {
+                ComUtil.Release(targetFolder);
+                ComUtil.Release(session);
             }
         }
 
@@ -351,13 +515,21 @@ namespace OutlookQuickMove
                 catch (Exception ex)
                 {
                     QuickMoveLog.Write("failed to resolve target folder.", ex);
-                    MessageBox.Show("The selected target folder is no longer available. It may have been moved, renamed, or deleted.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        "Der gewählte Zielordner ist nicht mehr verfügbar. Er wurde möglicherweise verschoben, umbenannt oder gelöscht.",
+                        QuickMoveTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (targetFolder == null)
                 {
-                    MessageBox.Show("Select a target folder before moving mail.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Bitte einen Zielordner auswählen.",
+                        QuickMoveTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
@@ -451,7 +623,11 @@ namespace OutlookQuickMove
                 explorer = application.ActiveExplorer();
                 if (explorer == null)
                 {
-                    MessageBox.Show("No active Outlook explorer window is available.", "Go to Folder", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Es ist kein aktives Outlook-Fenster verfügbar.",
+                        GoToFolderTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
@@ -464,9 +640,9 @@ namespace OutlookQuickMove
                 if (folderResult.Folders.Count == 0)
                 {
                     var message = folderResult.Warnings.Count > 0
-                        ? "No suitable mail folders were found. Some Outlook data files could not be read. Check the Quick Move log for details."
-                        : "No suitable mail folders were found.";
-                    MessageBox.Show(message, "Go to Folder", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        ? "Es wurden keine geeigneten E-Mail-Ordner gefunden. Einige Outlook-Datendateien konnten nicht gelesen werden.\n\n" + LogDetails
+                        : "Es wurden keine geeigneten E-Mail-Ordner gefunden.";
+                    MessageBox.Show(message, GoToFolderTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -491,7 +667,11 @@ namespace OutlookQuickMove
 
                 if (string.IsNullOrEmpty(targetEntryId) || string.IsNullOrEmpty(targetStoreId))
                 {
-                    MessageBox.Show("Select a folder to go to.", "Go to Folder", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Bitte einen Ordner auswählen.",
+                        GoToFolderTitle,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
@@ -506,7 +686,7 @@ namespace OutlookQuickMove
 
         private static void ExecuteGoToSelectedMailFolder()
         {
-            const string title = "Go to Mail Folder";
+            const string title = GoToMailFolderTitle;
 
             var application = Globals.ThisAddIn.Application;
             Outlook.Explorer explorer = null;
@@ -518,21 +698,29 @@ namespace OutlookQuickMove
                 explorer = application.ActiveExplorer();
                 if (explorer == null)
                 {
-                    MessageBox.Show("No active Outlook explorer window is available.", title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Es ist kein aktives Outlook-Fenster verfügbar.",
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
                 selection = explorer.Selection;
                 if (selection == null || selection.Count == 0)
                 {
-                    MessageBox.Show("Select a mail item before using Go to Mail Folder.", title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Bitte zuerst eine Nachricht auswählen.",
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
                 if (selection.Count > 1)
                 {
                     var result = MessageBox.Show(
-                        "Multiple items are selected. Go to Mail Folder will jump to the folder of the first mail item in the current selection. Continue?",
+                        "Es sind mehrere Elemente ausgewählt. Es wird der Ordner der ersten ausgewählten Nachricht geöffnet.\n\nFortfahren?",
                         title,
                         MessageBoxButtons.OKCancel,
                         MessageBoxIcon.Warning);
@@ -566,7 +754,11 @@ namespace OutlookQuickMove
 
                 if (selectedMail == null)
                 {
-                    MessageBox.Show("The current selection does not contain a mail item.", title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Die aktuelle Auswahl enthält keine E-Mail-Nachricht.",
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
@@ -575,14 +767,22 @@ namespace OutlookQuickMove
                 if (string.IsNullOrEmpty(source.EntryId) || string.IsNullOrEmpty(source.StoreId))
                 {
                     QuickMoveLog.Write("go to mail folder: could not determine source folder for '" + subject + "'.");
-                    MessageBox.Show("Could not determine the selected mail item's folder. Check the Quick Move log for details.", title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        "Der Ordner der ausgewählten Nachricht konnte nicht ermittelt werden.\n\n" + LogDetails,
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (IsCurrentFolder(explorer, source))
                 {
-                    var folderPath = string.IsNullOrWhiteSpace(source.Path) ? "(unknown folder)" : source.Path;
-                    MessageBox.Show("Already in this folder:" + Environment.NewLine + folderPath, title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    var folderPath = string.IsNullOrWhiteSpace(source.Path) ? "(unbekannter Ordner)" : source.Path;
+                    MessageBox.Show(
+                        "Dieser Ordner ist bereits geöffnet:\n" + folderPath,
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
@@ -598,31 +798,11 @@ namespace OutlookQuickMove
 
         private static FolderEnumerationResult RefreshFolderList(Outlook.Application application)
         {
-            // Refresh is a user-initiated, authoritative re-sync: rebuild the store-root baseline
-            // from a full scan, drop the caches, then re-enumerate from the refreshed saved roots.
-            // Only clean scans reconcile/prune removed stores; partial scans merge successful roots
-            // and keep the existing baseline for stores that could not be read.
-            var refreshResult = OutlookFolderEnumerator.RefreshStoreRoots(application);
+            // Store roots are maintained by the StoreAdd tracker and Settings. A normal folder
+            // refresh therefore only drops the index and walks the already known roots. This avoids
+            // the additional full Stores scan that made Refresh feel stalled on large profiles.
             OutlookFolderEnumerator.InvalidateCache();
-            var folderResult = OutlookFolderEnumerator.GetMailFolders(application);
-            return AddRefreshWarnings(folderResult, refreshResult);
-        }
-
-        private static FolderEnumerationResult AddRefreshWarnings(FolderEnumerationResult folderResult, StoreEnumerationResult refreshResult)
-        {
-            if (folderResult == null || refreshResult == null || refreshResult.Errors.Count == 0)
-            {
-                return folderResult;
-            }
-
-            var warnings = new FolderEnumerationWarnings();
-            warnings.AddRange(folderResult.Warnings);
-            foreach (var error in refreshResult.Errors)
-            {
-                warnings.Add(FolderWarningKind.StoreUnreadable, error);
-            }
-
-            return new FolderEnumerationResult(folderResult.Folders, warnings);
+            return OutlookFolderEnumerator.GetMailFolders(application);
         }
 
         private static void ShowGoToFolderEnumerationWarnings(FolderEnumerationWarnings folderWarnings)
@@ -633,21 +813,21 @@ namespace OutlookQuickMove
             }
 
             var message = new StringBuilder();
-            message.AppendLine("Some folders could not be read, so the list may be incomplete (" + folderWarnings.Count + "):");
+            message.AppendLine("Einige Ordner konnten nicht gelesen werden. Die Liste ist möglicherweise unvollständig (" + folderWarnings.Count + "):");
             message.Append(BuildWarningBreakdown(folderWarnings));
             if (HasStoreUnreadableWarnings(folderWarnings))
             {
                 message.AppendLine(StoreRetryHint);
             }
 
-            message.AppendLine("Details are in the log: %TEMP%\\OutlookQuickMove.log");
+            message.AppendLine(LogDetails);
 
-            MessageBox.Show(message.ToString(), "Go to Folder", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(message.ToString(), GoToFolderTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private static void NavigateToFolder(Outlook.Application application, Outlook.Explorer explorer, string targetEntryId, string targetStoreId)
         {
-            NavigateToFolder(application, explorer, targetEntryId, targetStoreId, "Go to Folder", "go to folder");
+            NavigateToFolder(application, explorer, targetEntryId, targetStoreId, GoToFolderTitle, "go to folder");
         }
 
         private static void NavigateToFolder(Outlook.Application application, Outlook.Explorer explorer, string targetEntryId, string targetStoreId, string title, string logPrefix)
@@ -664,13 +844,21 @@ namespace OutlookQuickMove
                 catch (Exception ex)
                 {
                     QuickMoveLog.Write(logPrefix + ": failed to resolve target folder.", ex);
-                    MessageBox.Show("The selected folder is no longer available. It may have been moved, renamed, or deleted.", title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        "Der gewählte Ordner ist nicht mehr verfügbar. Er wurde möglicherweise verschoben, umbenannt oder gelöscht.",
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                     return;
                 }
 
                 if (targetFolder == null)
                 {
-                    MessageBox.Show("Select a folder to go to.", title, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        "Bitte einen Ordner auswählen.",
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
 
@@ -682,7 +870,11 @@ namespace OutlookQuickMove
                 catch (Exception ex)
                 {
                     QuickMoveLog.Write(logPrefix + ": failed to navigate to the selected folder.", ex);
-                    MessageBox.Show("Could not switch to the selected folder. Check the Quick Move log for details.", title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(
+                        "Der gewählte Ordner konnte nicht geöffnet werden.\n\n" + LogDetails,
+                        title,
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
                 }
             }
             finally
@@ -703,7 +895,11 @@ namespace OutlookQuickMove
 
             if (storeResult.Stores.Count == 0)
             {
-                MessageBox.Show("No Outlook data files were found.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Es wurden keine Outlook-Konten oder Datendateien gefunden.",
+                    SettingsTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
 
@@ -754,16 +950,21 @@ namespace OutlookQuickMove
 
             if (!saved)
             {
-                MessageBox.Show("Your selection could not be saved. Check the Quick Move log for details.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    "Die Einstellungen konnten nicht gespeichert werden.\n\n" + LogDetails,
+                    SettingsTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
                 return;
             }
 
             if (storeResult.Errors.Count > 0)
             {
                 MessageBox.Show(
-                    "Settings saved. Some Outlook data files could not be read; their existing entries were kept. "
-                    + "If Outlook is busy, reopen Settings in a minute to finish syncing.",
-                    "Quick Move",
+                    "Die Einstellungen wurden gespeichert. Einige Outlook-Datendateien konnten nicht gelesen werden; "
+                    + "die bisherigen Einträge bleiben erhalten. Bitte die Einstellungen in einer Minute erneut öffnen, "
+                    + "falls Outlook noch mit der Synchronisierung beschäftigt ist.",
+                    SettingsTitle,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
             }
@@ -774,7 +975,11 @@ namespace OutlookQuickMove
             var history = UndoStore.LoadAll();
             if (history.Count == 0)
             {
-                MessageBox.Show("There are no Quick Move actions to undo.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    "Es gibt keine Verschiebevorgänge, die rückgängig gemacht werden können.",
+                    UndoTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
@@ -930,24 +1135,29 @@ namespace OutlookQuickMove
         {
             if (notFound == 0 && failed == 0)
             {
-                MessageBox.Show("Moved " + restored + " item(s) back to the original folder(s).", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    restored + " Nachricht(en) wurden in die ursprünglichen Ordner zurückverschoben.",
+                    UndoTitle,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
             var message = new StringBuilder();
-            message.AppendLine("Undo summary:");
-            message.AppendLine("Restored: " + restored);
+            message.AppendLine("Rückgängig-Übersicht");
+            message.AppendLine();
+            message.AppendLine("Zurückverschoben: " + restored);
             if (notFound > 0)
             {
-                message.AppendLine("No longer found (removed from history): " + notFound);
+                message.AppendLine("Nicht mehr gefunden und aus dem Verlauf entfernt: " + notFound);
             }
 
             if (failed > 0)
             {
-                message.AppendLine("Could not be restored (kept in history): " + failed);
+                message.AppendLine("Nicht zurückverschoben und im Verlauf behalten: " + failed);
             }
 
-            MessageBox.Show(message.ToString(), "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(message.ToString(), UndoTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private static void ShowSummaryIfNeeded(int moved, int skippedNonMail, List<string> skippedSameFolder, List<string> failures, FolderEnumerationWarnings folderWarnings)
@@ -959,17 +1169,18 @@ namespace OutlookQuickMove
             }
 
             var message = new StringBuilder();
-            message.AppendLine("Quick Move summary:");
-            message.AppendLine("Moved: " + moved);
+            message.AppendLine("Verschiebeübersicht");
+            message.AppendLine();
+            message.AppendLine("Verschoben: " + moved);
 
             if (skippedNonMail > 0)
             {
-                message.AppendLine("Skipped non-mail items: " + skippedNonMail);
+                message.AppendLine("Keine E-Mail-Nachrichten und deshalb übersprungen: " + skippedNonMail);
             }
 
             if (skippedSameFolder.Count > 0)
             {
-                message.AppendLine("Skipped because source and target folder are the same: " + skippedSameFolder.Count);
+                message.AppendLine("Quell- und Zielordner waren identisch: " + skippedSameFolder.Count);
                 foreach (var subject in skippedSameFolder.GetRange(0, Math.Min(5, skippedSameFolder.Count)))
                 {
                     message.AppendLine("- " + subject);
@@ -978,7 +1189,7 @@ namespace OutlookQuickMove
 
             if (failures.Count > 0)
             {
-                message.AppendLine("Failed to move: " + failures.Count);
+                message.AppendLine("Fehlgeschlagen: " + failures.Count);
                 foreach (var subject in failures.GetRange(0, Math.Min(5, failures.Count)))
                 {
                     message.AppendLine("- " + subject);
@@ -987,24 +1198,92 @@ namespace OutlookQuickMove
 
             if (warningCount > 0)
             {
-                message.AppendLine("Folder enumeration warnings: " + warningCount);
+                message.AppendLine("Nicht vollständig gelesene Ordner: " + warningCount);
                 message.Append(BuildWarningBreakdown(folderWarnings));
                 if (HasStoreUnreadableWarnings(folderWarnings))
                 {
                     message.AppendLine(StoreRetryHint);
                 }
 
-                message.AppendLine("Details are in the log: %TEMP%\\OutlookQuickMove.log");
+                message.AppendLine(LogDetails);
             }
 
-            MessageBox.Show(message.ToString(), "Quick Move", MessageBoxButtons.OK, failures.Count > 0 || skippedSameFolder.Count > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
+            MessageBox.Show(
+                message.ToString(),
+                QuickMoveTitle,
+                MessageBoxButtons.OK,
+                failures.Count > 0 || skippedSameFolder.Count > 0
+                    ? MessageBoxIcon.Warning
+                    : MessageBoxIcon.Information);
+        }
+
+        private static void ShowCopySummaryIfNeeded(
+            int copied,
+            int skippedNonMail,
+            List<string> skippedSameFolder,
+            List<string> failures,
+            List<string> temporaryCopies,
+            FolderEnumerationWarnings folderWarnings)
+        {
+            var warningCount = folderWarnings == null ? 0 : folderWarnings.Count;
+            if (skippedNonMail == 0
+                && skippedSameFolder.Count == 0
+                && failures.Count == 0
+                && warningCount == 0)
+            {
+                return;
+            }
+
+            var message = new StringBuilder();
+            message.AppendLine("Kopierübersicht:");
+            message.AppendLine("Kopiert: " + copied);
+            if (skippedNonMail > 0)
+            {
+                message.AppendLine("Keine Nachrichten und deshalb übersprungen: " + skippedNonMail);
+            }
+
+            if (skippedSameFolder.Count > 0)
+            {
+                message.AppendLine("Quell- und Zielordner waren identisch: " + skippedSameFolder.Count);
+            }
+
+            if (failures.Count > 0)
+            {
+                message.AppendLine("Fehlgeschlagen: " + failures.Count);
+                foreach (var subject in failures.GetRange(0, Math.Min(5, failures.Count)))
+                {
+                    message.AppendLine("- " + subject);
+                }
+            }
+
+            if (temporaryCopies.Count > 0)
+            {
+                message.AppendLine();
+                message.AppendLine(
+                    "Outlook hatte bereits eine Kopie im Quellordner erzeugt, konnte sie aber nicht "
+                    + "ins Ziel verschieben. Bitte den Quellordner auf Dubletten prüfen.");
+            }
+
+            if (warningCount > 0)
+            {
+                message.AppendLine("Nicht lesbare Ordner: " + warningCount);
+                message.Append(BuildWarningBreakdown(folderWarnings));
+            }
+
+            MessageBox.Show(
+                message.ToString(),
+                "Schnell kopieren",
+                MessageBoxButtons.OK,
+                failures.Count > 0 || temporaryCopies.Count > 0
+                    ? MessageBoxIcon.Warning
+                    : MessageBoxIcon.Information);
         }
 
         // Shown when one or more data files could not be read. Rebuilding the list binds every data
         // file, which can transiently fail when Outlook is busy (e.g. still mounting stores at
         // startup), so a retry often succeeds.
         private const string StoreRetryHint =
-            "Tip: if Outlook is busy, press Refresh in the dialog (or reopen Settings) again in a minute.";
+            "Tipp: Wenn Outlook noch beschäftigt ist, in einer Minute erneut auf „Aktualisieren“ klicken.";
 
         private static bool HasStoreUnreadableWarnings(FolderEnumerationWarnings folderWarnings)
         {
@@ -1038,12 +1317,12 @@ namespace OutlookQuickMove
         {
             try
             {
-                return string.IsNullOrWhiteSpace(mail.Subject) ? "(no subject)" : mail.Subject;
+                return string.IsNullOrWhiteSpace(mail.Subject) ? "(ohne Betreff)" : mail.Subject;
             }
             catch (Exception ex)
             {
                 QuickMoveLog.Write("failed to read mail subject.", ex);
-                return "(unavailable subject)";
+                return "(Betreff nicht verfügbar)";
             }
         }
 
@@ -1083,6 +1362,13 @@ namespace OutlookQuickMove
             if (source == null || targetIdentity == null)
             {
                 return false;
+            }
+
+            if (!string.IsNullOrEmpty(source.EntryId) && !string.IsNullOrEmpty(targetIdentity.EntryId)
+                && !string.IsNullOrEmpty(source.StoreId) && !string.IsNullOrEmpty(targetIdentity.StoreId))
+            {
+                return string.Equals(source.EntryId, targetIdentity.EntryId, StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(source.StoreId, targetIdentity.StoreId, StringComparison.OrdinalIgnoreCase);
             }
 
             if (!string.IsNullOrEmpty(source.EntryId) && !string.IsNullOrEmpty(targetIdentity.EntryId))
@@ -1192,6 +1478,7 @@ namespace OutlookQuickMove
             var folderPath = GetFolderPath(folder);
             return new FolderIdentity(
                 GetFolderEntryId(folder),
+                GetFolderStoreId(folder),
                 NormalizeFolderPath(folderPath),
                 string.IsNullOrWhiteSpace(folderPath) ? "(unknown target folder)" : folderPath);
         }
@@ -1270,14 +1557,17 @@ namespace OutlookQuickMove
 
         private sealed class FolderIdentity
         {
-            public FolderIdentity(string entryId, string normalizedPath, string displayPath)
+            public FolderIdentity(string entryId, string storeId, string normalizedPath, string displayPath)
             {
                 EntryId = entryId ?? string.Empty;
+                StoreId = storeId ?? string.Empty;
                 NormalizedPath = normalizedPath ?? string.Empty;
                 DisplayPath = displayPath ?? string.Empty;
             }
 
             public string EntryId { get; }
+
+            public string StoreId { get; }
 
             public string NormalizedPath { get; }
 

@@ -7,6 +7,9 @@
 A keyboard-first VSTO add-in for **classic Outlook on Windows** that moves the selected mail
 to a folder you find by typing — no dragging, no expanding the folder tree.
 
+This Kurtop GmbH fork adds a Thunderbird-style, unified folder picker. The same dialog can move,
+copy, or navigate to a folder across all enabled Outlook accounts and data files.
+
 User guide:
 
 - [Installation and User Guide](docs/USER_GUIDE.md)
@@ -14,8 +17,17 @@ User guide:
 
 ## Features
 
-- **Quick Move dialog** — type to filter folders by full path, `Up`/`Down` to pick, `Enter` to
-  move. Works on one or many selected messages.
+- **Thunderbird-style action picker** — switch between `Move`, `Copy`, and `Go to Folder` in one
+  dialog, type to search, use `Up`/`Down` to pick, and press `Enter`. Move and copy work on one or
+  many selected messages.
+- **Cross-account by design** — search and target folders from all enabled Outlook accounts and
+  data files; the account is shown as the first component of every result path.
+- **Fuzzy, relevance-ranked search** — exact and prefix folder-name matches appear first, followed
+  by full-path and tolerant subsequence matches.
+- **Direct keyboard workflow** — `Ctrl+M`, type, `Up`/`Down`, `Enter` moves mail; `Ctrl+G` opens the
+  same type-ahead workflow to navigate to a folder. The shortcuts are scoped to Outlook only.
+- **Popup behaviour** — the compact picker opens at the upper-right edge of the active Outlook
+  window, closes with `Esc` or when focus moves elsewhere, and confirms with `Enter`.
 - **Go to Folder** — search the same folder list and switch the active Outlook window without
   moving mail.
 - **Go to Mail Folder** — jump from a selected mail item to the folder that contains it.
@@ -72,11 +84,12 @@ Do not split the `.vsto` path across multiple lines inside the quoted string.
 
 After installation, restart Outlook. The add-in creates its own top-level Ribbon tab:
 
-`Quick Move` ribbon tab -> `Actions` group
+`Schnell verschieben` ribbon tab -> `Nachrichten` group
 
 Available buttons:
 
-- `Quick Move`: search and move the selected mail items.
+- `Schnell verschieben`: open the unified picker and choose `Verschieben`, `Kopieren`, or
+  `Zum Ordner`.
 - `Go to Folder`: search for a folder and switch the active Outlook window to it (navigate, no
   move). Uses the same Data Files selection and the same type-to-filter dialog as Quick Move.
 - `Go to Mail Folder`: switch the active Outlook window to the folder that contains the first
@@ -88,6 +101,20 @@ Available buttons:
   remembered-moves cap and a clear option).
 
 In the Quick Move dialog, type to filter folders, use `Up` / `Down` to change the highlighted candidate, and press `Enter` to confirm.
+
+The interaction and compact account/folder presentation are inspired by Thunderbird's
+[Quick Folder Move](https://github.com/kewisch/quickmove-extension) extension. This fork uses a
+native WinForms implementation for classic Outlook rather than copying Thunderbird UI code.
+
+## Keyboard workflow
+
+- `Ctrl+M` — open Quick Move with `Verschieben` selected.
+- `Ctrl+G` — open `Zum Ordner`.
+- Then type any part of an account/folder path, use `Up` / `Down`, and press `Enter`.
+- `Esc` closes the picker without changing anything; clicking outside closes it as well.
+
+`Ctrl+M` normally triggers Send/Receive in classic Outlook. This fork intentionally assigns it to
+Quick Move; use Outlook's equivalent `F9` shortcut when you want to check for new messages.
 
 ## Go to a folder
 
@@ -156,13 +183,12 @@ PST/OST-backed stores are matched by file path so the selection survives Outlook
 ### Folder list caching
 
 Building the folder list walks every folder in every selected data file, which is the heaviest
-operation, so the result is cached and reused for a short window (about 2 minutes) instead of being
-rebuilt on every Quick Move / Go to Folder. This noticeably reduces memory churn and MAPI resource
-pressure on large or multi-mailbox profiles. The cache refreshes automatically after the window, or
-immediately when you save Settings. A folder you create or rename directly in Outlook may therefore
-take up to about 2 minutes to appear; save Settings to refresh it right away. If some folders cannot
-be read during enumeration, the Quick Move summary groups the warnings by cause and points you to
-the diagnostic log for the exact folders.
+operation. The in-memory index is therefore reused for 10 minutes and its last successful snapshot
+is kept on disk for up to 30 days. This makes the picker open immediately on normal Outlook starts,
+including large multi-account profiles, instead of blocking on a complete MAPI folder walk. Saving
+Settings, adding a store, or pressing `Aktualisieren` invalidates the index and rebuilds it.
+If some folders cannot be read during enumeration, the Quick Move summary groups the warnings by
+cause and points you to the diagnostic log for the exact folders.
 
 On profiles with many or large data files, Quick Move avoids opening the whole set of data files
 every time (which can trigger Outlook's "exhausted all shared resources" error). It records each
@@ -178,7 +204,8 @@ closes and Outlook restarts, persisted next to the store filter in:
 $env:APPDATA\OutlookQuickMove\mark-as-read.txt
 ```
 
-Dialog windows use the embedded icon asset at `OutlookQuickMove\Assets\QuickMove.ico`.
+The Thunderbird-style folder picker deliberately uses a clean title bar without a custom window
+icon.
 
 After changing and rebuilding the add-in, do a clean reinstall with the same `.vsto`
 path to make sure Outlook refreshes the VSTO deployment cache. See

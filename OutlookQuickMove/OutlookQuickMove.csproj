@@ -215,12 +215,15 @@
     <Compile Include="ComUtil.cs" />
     <Compile Include="BusyCursor.cs" />
     <Compile Include="FolderCandidate.cs" />
+    <Compile Include="FolderPickerAction.cs" />
+    <Compile Include="FolderPickerRow.cs" />
     <Compile Include="FolderEnumerationResult.cs" />
     <Compile Include="FolderEnumerationWarnings.cs" />
     <Compile Include="FolderListCacheStore.cs" />
     <Compile Include="FrequentTarget.cs" />
     <Compile Include="FrequentTargetStore.cs" />
     <Compile Include="MarkAsReadSetting.cs" />
+    <Compile Include="OutlookShortcutManager.cs" />
     <Compile Include="FolderPickerOptions.cs" />
     <Compile Include="FolderPickerForm.cs">
       <SubType>Form</SubType>

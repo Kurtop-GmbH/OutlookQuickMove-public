@@ -85,11 +85,11 @@ namespace OutlookQuickMove
 
         public override string ToString()
         {
-            var subject = string.IsNullOrWhiteSpace(Subject) ? "(no subject)" : Subject;
-            var source = string.IsNullOrWhiteSpace(SourceFolderPath) ? "(unknown)" : SourceFolderPath;
-            var target = string.IsNullOrWhiteSpace(TargetFolderPath) ? "(unknown)" : TargetFolderPath;
-            return MovedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm") + "  " + subject
-                + "   [ " + source + " -> " + target + " ]";
+            var subject = string.IsNullOrWhiteSpace(Subject) ? "(ohne Betreff)" : Subject;
+            var source = string.IsNullOrWhiteSpace(SourceFolderPath) ? "(unbekannt)" : SourceFolderPath;
+            var target = string.IsNullOrWhiteSpace(TargetFolderPath) ? "(unbekannt)" : TargetFolderPath;
+            return MovedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm") + "   " + subject
+                + "   " + source + "  →  " + target;
         }
     }
 }

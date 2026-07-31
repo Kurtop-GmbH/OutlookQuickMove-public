@@ -74,13 +74,13 @@ namespace OutlookQuickMove
             switch (kind)
             {
                 case FolderWarningKind.StoreUnreadable:
-                    return "Data files/stores that could not be read";
+                    return "Nicht lesbare Konten oder Datendateien";
                 case FolderWarningKind.SubfoldersUnreadable:
-                    return "Folders whose subfolders could not be read";
+                    return "Ordner mit nicht lesbaren Unterordnern";
                 case FolderWarningKind.FolderIdentityMissing:
-                    return "Folders with no usable identity";
+                    return "Ordner ohne verwendbare Kennung";
                 default:
-                    return "Other folder warnings";
+                    return "Weitere Ordnerwarnungen";
             }
         }
     }

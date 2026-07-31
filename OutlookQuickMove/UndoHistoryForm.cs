@@ -20,12 +20,12 @@ namespace OutlookQuickMove
         {
             var items = entries == null ? new List<UndoEntry>() : entries.ToList();
 
-            Text = "Undo Quick Move";
+            Text = "Verschieben rückgängig";
             StartPosition = FormStartPosition.CenterScreen;
-            MinimumSize = new Size(560, 360);
+            MinimumSize = new Size(640, 360);
             Size = new Size(780, 480);
             Font = SystemFonts.MessageBoxFont;
-            QuickMoveIcon.ApplyTo(this);
+            ShowIcon = false;
 
             var layout = new TableLayoutPanel
             {
@@ -43,13 +43,14 @@ namespace OutlookQuickMove
             {
                 AutoSize = true,
                 Margin = new Padding(0, 0, 0, 6),
-                Text = "Check the moves to undo (the mail is moved back to its original folder):"
+                Text = "Ausgewählte Nachrichten werden in ihre ursprünglichen Ordner zurückverschoben."
             };
 
             listEntries = new CheckedListBox
             {
                 CheckOnClick = true,
                 Dock = DockStyle.Fill,
+                HorizontalScrollbar = true,
                 IntegralHeight = false
             };
 
@@ -97,13 +98,13 @@ namespace OutlookQuickMove
             row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
-            var buttonSelectAll = new Button { AutoSize = true, Margin = new Padding(0, 0, 8, 0), Text = "Select All" };
+            var buttonSelectAll = new Button { AutoSize = true, Margin = new Padding(0, 0, 8, 0), Text = "Alle auswählen" };
             buttonSelectAll.Click += delegate { SetAllChecked(true); };
 
-            var buttonClear = new Button { AutoSize = true, Margin = new Padding(0, 0, 8, 0), Text = "Clear" };
+            var buttonClear = new Button { AutoSize = true, Margin = new Padding(0, 0, 8, 0), Text = "Auswahl aufheben" };
             buttonClear.Click += delegate { SetAllChecked(false); };
 
-            var buttonClearHistory = new Button { AutoSize = true, Margin = new Padding(0, 0, 0, 0), Text = "Clear History" };
+            var buttonClearHistory = new Button { AutoSize = true, Margin = new Padding(0), Text = "Verlauf löschen" };
             buttonClearHistory.Click += delegate { ClearHistory(); };
 
             var leftButtons = new FlowLayoutPanel
@@ -112,7 +113,8 @@ namespace OutlookQuickMove
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.LeftToRight,
-                Margin = new Padding(0)
+                Margin = new Padding(0),
+                WrapContents = false
             };
             leftButtons.Controls.Add(buttonSelectAll);
             leftButtons.Controls.Add(buttonClear);
@@ -122,8 +124,9 @@ namespace OutlookQuickMove
             {
                 DialogResult = DialogResult.None,
                 Margin = new Padding(8, 0, 0, 0),
-                Size = new Size(110, 28),
-                Text = "Undo Selected"
+                AutoSize = true,
+                MinimumSize = new Size(126, 30),
+                Text = "Rückgängig"
             };
             buttonUndo.Click += delegate { ConfirmUndo(); };
 
@@ -131,8 +134,9 @@ namespace OutlookQuickMove
             {
                 DialogResult = DialogResult.Cancel,
                 Margin = new Padding(8, 0, 0, 0),
-                Size = new Size(88, 28),
-                Text = "Cancel"
+                AutoSize = true,
+                MinimumSize = new Size(96, 30),
+                Text = "Abbrechen"
             };
 
             var rightButtons = new FlowLayoutPanel
@@ -141,7 +145,8 @@ namespace OutlookQuickMove
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.RightToLeft,
-                Margin = new Padding(0)
+                Margin = new Padding(0),
+                WrapContents = false
             };
             rightButtons.Controls.Add(buttonCancel);
             rightButtons.Controls.Add(buttonUndo);
@@ -167,7 +172,11 @@ namespace OutlookQuickMove
             var selected = listEntries.CheckedItems.Cast<UndoEntry>().ToList();
             if (selected.Count == 0)
             {
-                MessageBox.Show("Check at least one move to undo, or press Cancel.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    "Bitte mindestens einen Verschiebevorgang auswählen.",
+                    "Verschieben rückgängig",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
@@ -179,8 +188,8 @@ namespace OutlookQuickMove
         private void ClearHistory()
         {
             var confirm = MessageBox.Show(
-                "Remove all remembered Quick Move actions? This only clears the undo history; it does not move any mail.",
-                "Quick Move",
+                "Den gesamten Rückgängig-Verlauf löschen?\n\nDabei werden keine Nachrichten verschoben.",
+                "Rückgängig-Verlauf löschen",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning);
             if (confirm != DialogResult.Yes)

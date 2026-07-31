@@ -18,6 +18,12 @@ namespace OutlookQuickMove
         /// <summary>Text on the confirm (default) button.</summary>
         public string ConfirmButtonText { get; private set; }
 
+        /// <summary>Whether the Move / Copy / Go to Folder action bar is shown.</summary>
+        public bool ShowActionSelector { get; private set; }
+
+        /// <summary>Action selected when the dialog opens.</summary>
+        public FolderPickerAction InitialAction { get; private set; }
+
         /// <summary>Whether to show (and persist) the "Mark as read before moving" checkbox.</summary>
         public bool ShowMarkAsRead { get; private set; }
 
@@ -29,8 +35,10 @@ namespace OutlookQuickMove
         {
             return new FolderPickerOptions
             {
-                Title = "Quick Move",
-                ConfirmButtonText = "OK",
+                Title = "Schnelles Nachrichtenverschieben",
+                ConfirmButtonText = "Verschieben",
+                ShowActionSelector = true,
+                InitialAction = FolderPickerAction.Move,
                 ShowMarkAsRead = true,
                 RecordFrequentUse = true
             };
@@ -44,8 +52,10 @@ namespace OutlookQuickMove
         {
             return new FolderPickerOptions
             {
-                Title = "Go to Folder",
-                ConfirmButtonText = "Go",
+                Title = "Zum Ordner",
+                ConfirmButtonText = "Öffnen",
+                ShowActionSelector = false,
+                InitialAction = FolderPickerAction.GoToFolder,
                 ShowMarkAsRead = false,
                 RecordFrequentUse = false
             };

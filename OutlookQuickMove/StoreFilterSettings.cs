@@ -184,9 +184,13 @@ namespace OutlookQuickMove
         /// <summary>
         /// Adds or updates (by store key) a single store's root identity in the baseline, used by
         /// the <c>StoreAdd</c> tracker to pick up a newly mounted data file without a full scan.
+        /// Outlook raises StoreAdd again for some shared stores on every start, so the caller also
+        /// receives whether the persisted identity really changed. Unchanged startup notifications
+        /// must not invalidate the otherwise reusable folder index.
         /// </summary>
-        public static bool MergeStoreRoot(StoreFilterEntry entry)
+        public static bool TryMergeStoreRoot(StoreFilterEntry entry, out bool changed)
         {
+            changed = false;
             if (entry == null || string.IsNullOrEmpty(entry.StoreKey) || !entry.HasRootIdentity)
             {
                 return false;
@@ -196,9 +200,37 @@ namespace OutlookQuickMove
             {
                 var merged = new List<StoreFilterEntry>();
                 merged.AddRange(LoadAllStoreEntries());
+
+                var matching = merged
+                    .Where(existing => string.Equals(
+                        existing.StoreKey,
+                        entry.StoreKey,
+                        StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                if (matching.Count == 1 && AreSameStoreRoot(matching[0], entry))
+                {
+                    return true;
+                }
+
                 MergeEntry(merged, entry);
-                return WriteStoreEntries(merged);
+                if (!WriteStoreEntries(merged))
+                {
+                    return false;
+                }
+
+                changed = true;
+                return true;
             }
+        }
+
+        private static bool AreSameStoreRoot(StoreFilterEntry left, StoreFilterEntry right)
+        {
+            return left != null
+                && right != null
+                && string.Equals(left.StoreKey, right.StoreKey, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(left.DisplayName, right.DisplayName, StringComparison.Ordinal)
+                && string.Equals(left.RootEntryId, right.RootEntryId, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(left.RootStoreId, right.RootStoreId, StringComparison.OrdinalIgnoreCase);
         }
 
         private static IEnumerable<StoreFilterEntry> ToStoreEntries(IEnumerable<StoreCandidate> stores)

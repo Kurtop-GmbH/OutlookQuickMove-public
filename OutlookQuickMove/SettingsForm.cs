@@ -31,12 +31,12 @@ namespace OutlookQuickMove
         {
             this.stores = stores == null ? new List<StoreCandidate>() : stores.ToList();
 
-            Text = "Quick Move Settings";
+            Text = "Einstellungen – Schnelles Nachrichtenverschieben";
             StartPosition = FormStartPosition.CenterScreen;
-            MinimumSize = new Size(560, 400);
-            Size = new Size(720, 480);
+            MinimumSize = new Size(640, 420);
+            Size = new Size(760, 500);
             Font = SystemFonts.MessageBoxFont;
-            QuickMoveIcon.ApplyTo(this);
+            ShowIcon = false;
 
             var layout = new TableLayoutPanel
             {
@@ -85,7 +85,7 @@ namespace OutlookQuickMove
             checkClearUndo = new CheckBox
             {
                 AutoSize = true,
-                Text = "Clear all remembered undo history when I save"
+                Text = "Rückgängig-Verlauf beim Speichern vollständig löschen"
             };
 
             tabs.TabPages.Add(BuildDataFilesTab(enabledStoreKeys));
@@ -96,8 +96,8 @@ namespace OutlookQuickMove
             {
                 DialogResult = DialogResult.None,
                 Margin = new Padding(8, 0, 0, 0),
-                Size = new Size(88, 28),
-                Text = "OK"
+                Size = new Size(100, 30),
+                Text = "Speichern"
             };
             buttonOk.Click += delegate { ConfirmSettings(); };
 
@@ -105,8 +105,8 @@ namespace OutlookQuickMove
             {
                 DialogResult = DialogResult.Cancel,
                 Margin = new Padding(8, 0, 0, 0),
-                Size = new Size(88, 28),
-                Text = "Cancel"
+                Size = new Size(100, 30),
+                Text = "Abbrechen"
             };
 
             var buttonPanel = new FlowLayoutPanel
@@ -116,7 +116,8 @@ namespace OutlookQuickMove
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.RightToLeft,
                 Margin = new Padding(0, 8, 0, 0),
-                Padding = new Padding(0)
+                Padding = new Padding(0),
+                WrapContents = false
             };
             buttonPanel.Controls.Add(buttonCancel);
             buttonPanel.Controls.Add(buttonOk);
@@ -143,7 +144,7 @@ namespace OutlookQuickMove
 
         private TabPage BuildDataFilesTab(HashSet<string> enabledStoreKeys)
         {
-            var page = new TabPage("Data Files") { Padding = new Padding(8), UseVisualStyleBackColor = true };
+            var page = new TabPage("Konten und Datendateien") { Padding = new Padding(8), UseVisualStyleBackColor = true };
 
             var layout = new TableLayoutPanel { ColumnCount = 1, Dock = DockStyle.Fill, RowCount = 3 };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
@@ -155,7 +156,7 @@ namespace OutlookQuickMove
             {
                 AutoSize = true,
                 Margin = new Padding(0, 0, 0, 6),
-                Text = "Search for target folders in these Outlook data files:"
+                Text = "Zielordner in diesen Outlook-Konten und Datendateien suchen:"
             };
 
             var hasSavedFilter = enabledStoreKeys != null && enabledStoreKeys.Count > 0;
@@ -174,10 +175,10 @@ namespace OutlookQuickMove
                 listStores.EndUpdate();
             }
 
-            var buttonSelectAll = new Button { AutoSize = true, Margin = new Padding(0, 6, 8, 0), Text = "Select All" };
+            var buttonSelectAll = new Button { AutoSize = true, Margin = new Padding(0, 6, 8, 0), Text = "Alle auswählen" };
             buttonSelectAll.Click += delegate { SetAllStoresChecked(true); };
 
-            var buttonClear = new Button { AutoSize = true, Margin = new Padding(0, 6, 0, 0), Text = "Clear" };
+            var buttonClear = new Button { AutoSize = true, Margin = new Padding(0, 6, 0, 0), Text = "Auswahl aufheben" };
             buttonClear.Click += delegate { SetAllStoresChecked(false); };
 
             var buttons = new FlowLayoutPanel
@@ -186,7 +187,8 @@ namespace OutlookQuickMove
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.LeftToRight,
-                Margin = new Padding(0)
+                Margin = new Padding(0),
+                WrapContents = false
             };
             buttons.Controls.Add(buttonSelectAll);
             buttons.Controls.Add(buttonClear);
@@ -200,7 +202,7 @@ namespace OutlookQuickMove
 
         private TabPage BuildFrequentTab(IEnumerable<FrequentTarget> frequentTargets)
         {
-            var page = new TabPage("Frequent Folders") { Padding = new Padding(8), UseVisualStyleBackColor = true };
+            var page = new TabPage("Häufige Ordner") { Padding = new Padding(8), UseVisualStyleBackColor = true };
 
             var layout = new TableLayoutPanel { ColumnCount = 1, Dock = DockStyle.Fill, RowCount = 3 };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
@@ -208,8 +210,8 @@ namespace OutlookQuickMove
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-            var capLabel = new Label { Anchor = AnchorStyles.Left, AutoSize = true, Margin = new Padding(0, 6, 6, 0), Text = "Show at most" };
-            var foldersLabel = new Label { Anchor = AnchorStyles.Left, AutoSize = true, Margin = new Padding(6, 6, 0, 0), Text = "folders at the top (0 = off)" };
+            var capLabel = new Label { Anchor = AnchorStyles.Left, AutoSize = true, Margin = new Padding(0, 6, 6, 0), Text = "Höchstens" };
+            var foldersLabel = new Label { Anchor = AnchorStyles.Left, AutoSize = true, Margin = new Padding(6, 6, 0, 0), Text = "häufige Ordner anzeigen (0 = aus)" };
             numericMaxFrequent.Margin = new Padding(0, 4, 0, 0);
 
             var capRow = new FlowLayoutPanel
@@ -241,10 +243,10 @@ namespace OutlookQuickMove
                 listFrequent.EndUpdate();
             }
 
-            var buttonDelete = new Button { AutoSize = true, Margin = new Padding(0, 6, 8, 0), Text = "Delete Selected" };
+            var buttonDelete = new Button { AutoSize = true, Margin = new Padding(0, 6, 8, 0), Text = "Ausgewählte löschen" };
             buttonDelete.Click += delegate { DeleteSelectedFrequent(); };
 
-            var buttonClearAll = new Button { AutoSize = true, Margin = new Padding(0, 6, 0, 0), Text = "Clear All" };
+            var buttonClearAll = new Button { AutoSize = true, Margin = new Padding(0, 6, 0, 0), Text = "Alle löschen" };
             buttonClearAll.Click += delegate { listFrequent.Items.Clear(); };
 
             var buttons = new FlowLayoutPanel
@@ -253,7 +255,8 @@ namespace OutlookQuickMove
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 Dock = DockStyle.Fill,
                 FlowDirection = FlowDirection.LeftToRight,
-                Margin = new Padding(0)
+                Margin = new Padding(0),
+                WrapContents = false
             };
             buttons.Controls.Add(buttonDelete);
             buttons.Controls.Add(buttonClearAll);
@@ -267,7 +270,7 @@ namespace OutlookQuickMove
 
         private TabPage BuildUndoTab()
         {
-            var page = new TabPage("Undo History") { Padding = new Padding(8), UseVisualStyleBackColor = true };
+            var page = new TabPage("Rückgängig") { Padding = new Padding(8), UseVisualStyleBackColor = true };
 
             var layout = new TableLayoutPanel { ColumnCount = 1, Dock = DockStyle.Fill, RowCount = 3 };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
@@ -275,8 +278,8 @@ namespace OutlookQuickMove
             layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-            var capLabel = new Label { Anchor = AnchorStyles.Left, AutoSize = true, Margin = new Padding(0, 6, 6, 0), Text = "Remember the last" };
-            var movesLabel = new Label { Anchor = AnchorStyles.Left, AutoSize = true, Margin = new Padding(6, 6, 0, 0), Text = "moves for undo (0 = off)" };
+            var capLabel = new Label { Anchor = AnchorStyles.Left, AutoSize = true, Margin = new Padding(0, 6, 6, 0), Text = "Die letzten" };
+            var movesLabel = new Label { Anchor = AnchorStyles.Left, AutoSize = true, Margin = new Padding(6, 6, 0, 0), Text = "Verschiebevorgänge speichern (0 = aus)" };
             numericMaxUndo.Margin = new Padding(0, 4, 0, 0);
 
             var capRow = new FlowLayoutPanel
@@ -296,7 +299,7 @@ namespace OutlookQuickMove
                 AutoSize = true,
                 ForeColor = SystemColors.GrayText,
                 Margin = new Padding(0, 0, 0, 6),
-                Text = "Use the \"Undo Quick Move\" button on the ribbon to move recent items back."
+                Text = "Über „Verschieben rückgängig“ im Menüband lassen sich Nachrichten zurückverschieben."
             };
 
             checkClearUndo.Margin = new Padding(0, 0, 0, 0);
@@ -334,7 +337,11 @@ namespace OutlookQuickMove
 
             if (selectedKeys.Count == 0)
             {
-                MessageBox.Show("Select at least one data file.", "Quick Move", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    "Bitte mindestens ein Outlook-Konto oder eine Datendatei auswählen.",
+                    "Einstellungen",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 

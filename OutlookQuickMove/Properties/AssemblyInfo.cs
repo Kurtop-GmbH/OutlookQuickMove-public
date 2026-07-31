@@ -7,11 +7,11 @@ using System.Security;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("OutlookQuickMove")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Thunderbird-style cross-account quick move for classic Outlook")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("r404r")]
+[assembly: AssemblyCompany("Kurtop GmbH")]
 [assembly: AssemblyProduct("OutlookQuickMove")]
-[assembly: AssemblyCopyright("Copyright © r404r 2026")]
+[assembly: AssemblyCopyright("Copyright © r404r and Kurtop GmbH 2026")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -33,6 +33,6 @@ using System.Security;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
 

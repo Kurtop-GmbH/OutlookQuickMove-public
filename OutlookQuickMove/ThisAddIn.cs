@@ -13,12 +13,14 @@ namespace OutlookQuickMove
             // Subscribe to Stores.StoreAdd so newly mounted data files are recorded into the
             // store-root baseline without scanning the whole Stores collection on the hot path.
             StoreRootTracker.Start(this.Application);
+            OutlookShortcutManager.Start();
         }
 
         private void ThisAddIn_Shutdown(object sender, System.EventArgs e)
         {
             // Note: Outlook no longer raises this event reliably. Best-effort: unsubscribe and
             //    release the one retained Stores reference if it does fire.
+            OutlookShortcutManager.Stop();
             StoreRootTracker.Stop();
         }
 

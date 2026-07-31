@@ -41,8 +41,8 @@ namespace OutlookQuickMove
 
         public override string ToString()
         {
-            var path = string.IsNullOrWhiteSpace(DisplayPath) ? "(unknown folder)" : DisplayPath;
-            return path + "   (used " + Count + ")";
+            var path = string.IsNullOrWhiteSpace(DisplayPath) ? "(unbekannter Ordner)" : DisplayPath;
+            return path + "   (" + Count + "× verwendet)";
         }
     }
 }

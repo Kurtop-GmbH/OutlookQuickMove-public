@@ -100,12 +100,21 @@ namespace OutlookQuickMove
                     return;
                 }
 
-                if (StoreFilterSettings.MergeStoreRoot(entry))
+                bool changed;
+                if (StoreFilterSettings.TryMergeStoreRoot(entry, out changed))
                 {
-                    // Only drop the caches once the new root is actually persisted, so the next
-                    // enumeration genuinely picks it up.
-                    OutlookFolderEnumerator.InvalidateCache();
-                    QuickMoveLog.Write("store added; merged root for '" + entry.DisplayName + "'.");
+                    if (changed)
+                    {
+                        // Only drop the caches when the saved identity actually changed. Outlook
+                        // re-raises StoreAdd for some existing shared stores at every startup.
+                        OutlookFolderEnumerator.InvalidateCache();
+                        QuickMoveLog.Write("store added or changed; merged root for '" + entry.DisplayName + "'.");
+                    }
+                    else
+                    {
+                        QuickMoveLog.WriteVerbose("store add notification matched the saved root for '"
+                            + entry.DisplayName + "'; folder cache retained.");
+                    }
                 }
                 else
                 {

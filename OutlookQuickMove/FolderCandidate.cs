@@ -18,6 +18,46 @@ namespace OutlookQuickMove
 
         public string DisplayPath { get; }
 
+        public string AccountName
+        {
+            get
+            {
+                var path = DisplayPath ?? string.Empty;
+                var separatorIndex = path.IndexOf('\\');
+                return separatorIndex < 0 ? path : path.Substring(0, separatorIndex);
+            }
+        }
+
+        public string FolderName
+        {
+            get
+            {
+                var path = DisplayPath ?? string.Empty;
+                var separatorIndex = path.LastIndexOf('\\');
+                return separatorIndex < 0 ? path : path.Substring(separatorIndex + 1);
+            }
+        }
+
+        public string ParentPath
+        {
+            get
+            {
+                var parts = (DisplayPath ?? string.Empty).Split('\\');
+                return parts.Length <= 2
+                    ? string.Empty
+                    : string.Join("  ›  ", parts, 1, parts.Length - 2);
+            }
+        }
+
+        /// <summary>
+        /// Human-friendly account/folder path used by the picker. Keep <see cref="DisplayPath"/>
+        /// unchanged for persistence and searching.
+        /// </summary>
+        public string DisplayText
+        {
+            get { return (DisplayPath ?? string.Empty).Replace("\\", "  ›  "); }
+        }
+
         public string EntryId { get; }
 
         public string StoreId { get; }
