@@ -52,8 +52,9 @@ search box, the picker shows your recently and frequently used targets. Use `Ctr
 `Ctrl+Right` to switch between `Verschieben`, `Kopieren`, and `Zum Ordner` without leaving the
 keyboard.
 
-The folder index is cached in memory for 10 minutes and on disk for up to 30 days. Press
-`Aktualisieren` after adding or renaming folders if you need to rebuild it immediately.
+The folder index is cached in memory for 10 minutes, kept on disk for up to 30 days, and preloaded
+when the add-in starts. Press `Aktualisieren` after adding or renaming folders if you need to rebuild
+it immediately.
 
 Select `Als gelesen verschieben` if the selected mail should be marked as read before it is moved.
 

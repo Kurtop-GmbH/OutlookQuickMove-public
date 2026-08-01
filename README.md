@@ -189,9 +189,10 @@ PST/OST-backed stores are matched by file path so the selection survives Outlook
 
 Building the folder list walks every folder in every selected data file, which is the heaviest
 operation. The in-memory index is therefore reused for 10 minutes and its last successful snapshot
-is kept on disk for up to 30 days. This makes the picker open immediately on normal Outlook starts,
-including large multi-account profiles, instead of blocking on a complete MAPI folder walk. Saving
-Settings, adding a store, or pressing `Aktualisieren` invalidates the index and rebuilds it.
+is kept on disk for up to 30 days and preloaded when the add-in starts. This makes the first shortcut
+open from memory on normal Outlook starts, including large multi-account profiles, instead of
+blocking on a complete MAPI folder walk. Saving Settings, adding a store, or pressing
+`Aktualisieren` invalidates the index and rebuilds it.
 If some folders cannot be read during enumeration, the Quick Move summary groups the warnings by
 cause and points you to the diagnostic log for the exact folders.
 

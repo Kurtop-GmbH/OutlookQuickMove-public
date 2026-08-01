@@ -10,6 +10,11 @@ namespace OutlookQuickMove
         {
             DebugLog("ThisAddIn_Startup");
 
+            // The persisted snapshot contains strings only, so it can be loaded before touching
+            // any Outlook stores. The first shortcut then opens from memory instead of doing disk
+            // I/O (and, when a valid snapshot exists, never performs a MAPI folder walk).
+            OutlookFolderEnumerator.WarmCacheFromDisk();
+
             // Subscribe to Stores.StoreAdd so newly mounted data files are recorded into the
             // store-root baseline without scanning the whole Stores collection on the hot path.
             StoreRootTracker.Start(this.Application);

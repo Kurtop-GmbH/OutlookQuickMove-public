@@ -32,6 +32,50 @@ namespace OutlookQuickMove
         private static string cachedSignature;
         private static DateTime cachedAtUtc;
 
+        /// <summary>
+        /// Loads the last complete folder snapshot into memory during add-in startup. This method
+        /// never touches the Outlook object model and never starts a folder enumeration: when no
+        /// matching snapshot exists, the normal first-use path remains responsible for rebuilding
+        /// it. Keeping disk I/O out of the first shortcut makes the common restart path immediate.
+        /// </summary>
+        public static bool WarmCacheFromDisk()
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var enabledStoreKeys = StoreFilterSettings.LoadEnabledStoreKeys();
+            var signature = BuildSignature(enabledStoreKeys);
+
+            lock (CacheGate)
+            {
+                if (cachedResult != null
+                    && string.Equals(cachedSignature, signature, StringComparison.Ordinal)
+                    && DateTime.UtcNow - cachedAtUtc < CacheLifetime)
+                {
+                    return true;
+                }
+            }
+
+            long cacheAgeMs;
+            var folders = FolderListCacheStore.Load(signature, DiskCacheLifetime, out cacheAgeMs);
+            if (folders.Count == 0)
+            {
+                QuickMoveLog.WriteVerbose("folder index preload skipped: no matching disk snapshot.");
+                return false;
+            }
+
+            var result = new FolderEnumerationResult(folders, new FolderEnumerationWarnings());
+            lock (CacheGate)
+            {
+                cachedResult = result;
+                cachedSignature = signature;
+                cachedAtUtc = DateTime.UtcNow;
+            }
+
+            QuickMoveLog.Write("folder index preloaded from disk: folders=" + folders.Count
+                + ", ageMs=" + cacheAgeMs
+                + ", elapsedMs=" + stopwatch.ElapsedMilliseconds + ".");
+            return true;
+        }
+
         public static FolderEnumerationResult GetMailFolders(Outlook.Application application)
         {
             var overallStopwatch = Stopwatch.StartNew();
