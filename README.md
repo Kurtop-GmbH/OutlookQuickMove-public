@@ -26,8 +26,9 @@ User guide:
   before additional/shared mailboxes in the result groups.
 - **Fuzzy, relevance-ranked search** — exact and prefix folder-name matches appear first, followed
   by full-path and tolerant subsequence matches.
-- **Direct keyboard workflow** — `Ctrl+M`, type, `Up`/`Down`, `Enter` moves mail; `Ctrl+G` opens the
-  same type-ahead workflow to navigate to a folder. The shortcuts are scoped to Outlook only.
+- **Direct keyboard workflow** — `Ctrl+M` or Thunderbird-style `Shift+M`, type, `Up`/`Down`,
+  `Enter` moves mail; `Ctrl+G` or `Shift+G` opens the same type-ahead workflow to navigate to a
+  folder. The shortcuts are scoped to Outlook only.
 - **Popup behaviour** — the compact picker opens at the upper-right edge of the active Outlook
   window, closes with `Esc` or when focus moves elsewhere, and confirms with `Enter`.
 - **Go to Folder** — search the same folder list and switch the active Outlook window without
@@ -110,13 +111,15 @@ native WinForms implementation for classic Outlook rather than copying Thunderbi
 
 ## Keyboard workflow
 
-- `Ctrl+M` — open Quick Move with `Verschieben` selected.
-- `Ctrl+G` — open `Zum Ordner`.
+- `Ctrl+M` or `Shift+M` — open Quick Move with `Verschieben` selected.
+- `Ctrl+G` or `Shift+G` — open `Zum Ordner`.
 - Then type any part of an account/folder path, use `Up` / `Down`, and press `Enter`.
 - `Esc` closes the picker without changing anything; clicking outside closes it as well.
 
 `Ctrl+M` normally triggers Send/Receive in classic Outlook. This fork intentionally assigns it to
-Quick Move; use Outlook's equivalent `F9` shortcut when you want to check for new messages.
+Quick Move; use Outlook's equivalent `F9` shortcut when you want to check for new messages. The
+`Shift` aliases only trigger in the Outlook Explorer when no text field has an active caret, so
+uppercase `M` and `G` remain available while typing.
 
 ## Go to a folder
 

@@ -40,7 +40,7 @@ The tab contains these buttons:
 `Quick Move` moves the currently selected mail items to a target folder.
 
 1. Select one or more mail items in Outlook.
-2. Press `Ctrl+M` or click `Schnell verschieben`.
+2. Press `Ctrl+M`, Thunderbird-style `Shift+M`, or click `Schnell verschieben`.
 3. Type keywords from the target account, folder name, or path.
 4. Use `Up` / `Down` to choose a folder.
 5. Press `Enter` to move the selected mail items.
@@ -63,7 +63,7 @@ Select `Als gelesen verschieben` if the selected mail should be marked as read b
 
 `Go to Folder` jumps to a folder without moving any mail.
 
-1. Press `Ctrl+G` or click `Go to Folder`.
+1. Press `Ctrl+G`, Thunderbird-style `Shift+G`, or click `Go to Folder`.
 2. Type folder keywords.
 3. Select the target folder.
 4. Press `Enter`. Outlook switches to that folder.
@@ -119,8 +119,8 @@ Set the value to `0` to stop recording new undo history. Existing history remain
 
 ## Keyboard Shortcuts
 
-- `Ctrl+M`: open Quick Move with `Verschieben` selected.
-- `Ctrl+G`: open the folder picker in navigation mode.
+- `Ctrl+M` or `Shift+M`: open Quick Move with `Verschieben` selected.
+- `Ctrl+G` or `Shift+G`: open the folder picker in navigation mode.
 - Type, use `Up` / `Down`, then press `Enter`.
 - `Ctrl+Left` / `Ctrl+Right`: switch the action in the unified Quick Move dialog.
 - `Esc`: close the picker without changing anything.
@@ -128,7 +128,8 @@ Set the value to `0` to stop recording new undo history. Existing history remain
 
 The shortcuts are scoped to the classic Outlook UI thread and are not system-wide. Classic Outlook
 normally uses `Ctrl+M` for Send/Receive; this fork intentionally reserves it for Quick Move. Use
-`F9` for Send/Receive.
+`F9` for Send/Receive. The `Shift` aliases are active only in the Outlook Explorer while no text
+field has an active caret, so typing uppercase `M` or `G` in searches and editors is unaffected.
 
 ## Screenshot Privacy Check
 

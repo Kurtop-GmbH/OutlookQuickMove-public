@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
+using Outlook = Microsoft.Office.Interop.Outlook;
 
 namespace OutlookQuickMove
 {
@@ -52,7 +54,8 @@ namespace OutlookQuickMove
                     return;
                 }
 
-                QuickMoveLog.Write("keyboard shortcuts started: Ctrl+M=move, Ctrl+G=go to folder.");
+                QuickMoveLog.Write(
+                    "keyboard shortcuts started: Ctrl+M/Shift+M=move, Ctrl+G/Shift+G=go to folder.");
             }
         }
 
@@ -88,9 +91,25 @@ namespace OutlookQuickMove
 
             var key = virtualKey.ToInt32();
             var isShortcutKey = key == VkM || key == VkG;
+            if (!isShortcutKey)
+            {
+                return CallNextHookEx(hookHandle, code, virtualKey, keyData);
+            }
+
             var controlDown = IsKeyDown(VkControl);
-            var otherModifierDown = IsKeyDown(VkShift) || IsKeyDown(VkMenu);
-            if (!isShortcutKey || !controlDown || otherModifierDown)
+            var shiftDown = IsKeyDown(VkShift);
+            var menuDown = IsKeyDown(VkMenu);
+            var shiftAliasAllowed = shiftDown
+                && !controlDown
+                && !menuDown
+                && IsShiftShortcutContextAllowed();
+            var action = ResolveShortcutAction(
+                key,
+                controlDown,
+                shiftDown,
+                menuDown,
+                shiftAliasAllowed);
+            if (action == ShortcutAction.None)
             {
                 return CallNextHookEx(hookHandle, code, virtualKey, keyData);
             }
@@ -102,7 +121,7 @@ namespace OutlookQuickMove
             var isInitialPress = (flags & (1L << 30)) == 0;
             if (isKeyDown && isInitialPress && pendingAction == ShortcutAction.None)
             {
-                pendingAction = key == VkM ? ShortcutAction.Move : ShortcutAction.GoToFolder;
+                pendingAction = action;
                 if (dispatchTimer != null)
                 {
                     dispatchTimer.Start();
@@ -110,8 +129,90 @@ namespace OutlookQuickMove
             }
 
             // Outlook uses Ctrl+M for Send/Receive. The user explicitly chose Ctrl+M for Quick
-            // Move; F9 remains Outlook's standard Send/Receive shortcut.
+            // Move; F9 remains Outlook's standard Send/Receive shortcut. Shift aliases are only
+            // swallowed in the guarded Explorer context, so normal uppercase letters keep working
+            // in editors and search fields.
             return new IntPtr(1);
+        }
+
+        private static ShortcutAction ResolveShortcutAction(
+            int key,
+            bool controlDown,
+            bool shiftDown,
+            bool menuDown,
+            bool shiftAliasAllowed)
+        {
+            if ((key != VkM && key != VkG)
+                || menuDown
+                || controlDown == shiftDown
+                || (shiftDown && !shiftAliasAllowed))
+            {
+                return ShortcutAction.None;
+            }
+
+            return key == VkM ? ShortcutAction.Move : ShortcutAction.GoToFolder;
+        }
+
+        private static bool IsShiftShortcutContextAllowed()
+        {
+            // A managed add-in dialog (especially the picker search box) must receive ordinary
+            // uppercase letters instead of recursively opening another picker.
+            if (Form.ActiveForm != null)
+            {
+                return false;
+            }
+
+            var threadInfo = new GuiThreadInfo
+            {
+                Size = (uint)Marshal.SizeOf(typeof(GuiThreadInfo))
+            };
+            if (GetGUIThreadInfo(GetCurrentThreadId(), ref threadInfo)
+                && IsTextInputWindow(threadInfo.CaretWindow))
+            {
+                return false;
+            }
+
+            Outlook.Explorer explorer = null;
+            object inlineResponse = null;
+            try
+            {
+                explorer = Globals.ThisAddIn.Application.ActiveExplorer();
+                inlineResponse = explorer == null ? null : explorer.ActiveInlineResponse;
+                return explorer != null
+                    && inlineResponse == null
+                    && GetExplorerWindowHandle(explorer) == GetForegroundWindow();
+            }
+            catch
+            {
+                // If Outlook cannot prove that the Explorer is active, preserve the typed letter.
+                return false;
+            }
+            finally
+            {
+                ComUtil.Release(inlineResponse);
+                ComUtil.Release(explorer);
+            }
+        }
+
+        private static IntPtr GetExplorerWindowHandle(Outlook.Explorer explorer)
+        {
+            var oleWindow = explorer as IOleWindow;
+            IntPtr windowHandle;
+            return oleWindow != null && oleWindow.GetWindow(out windowHandle) == 0
+                ? windowHandle
+                : IntPtr.Zero;
+        }
+
+        private static bool IsTextInputWindow(IntPtr window)
+        {
+            if (window == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            var className = new StringBuilder(256);
+            GetClassName(window, className, className.Capacity);
+            return className.ToString().IndexOf("EDIT", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static void DispatchTimerTick(object sender, EventArgs e)
@@ -145,7 +246,42 @@ namespace OutlookQuickMove
             GoToFolder
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct GuiThreadInfo
+        {
+            public uint Size;
+            public uint Flags;
+            public IntPtr ActiveWindow;
+            public IntPtr FocusWindow;
+            public IntPtr CaptureWindow;
+            public IntPtr MenuOwnerWindow;
+            public IntPtr MoveSizeWindow;
+            public IntPtr CaretWindow;
+            public NativeRect CaretRectangle;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeRect
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
         private delegate IntPtr KeyboardHookProc(int code, IntPtr virtualKey, IntPtr keyData);
+
+        [ComImport]
+        [Guid("00000114-0000-0000-C000-000000000046")]
+        [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        private interface IOleWindow
+        {
+            [PreserveSig]
+            int GetWindow(out IntPtr windowHandle);
+
+            [PreserveSig]
+            int ContextSensitiveHelp([MarshalAs(UnmanagedType.Bool)] bool enterMode);
+        }
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SetWindowsHookEx(
@@ -167,6 +303,19 @@ namespace OutlookQuickMove
 
         [DllImport("user32.dll")]
         private static extern short GetKeyState(int virtualKey);
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetGUIThreadInfo(uint threadId, ref GuiThreadInfo threadInfo);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetClassName(
+            IntPtr window,
+            StringBuilder className,
+            int maxCount);
 
         [DllImport("kernel32.dll")]
         private static extern uint GetCurrentThreadId();
