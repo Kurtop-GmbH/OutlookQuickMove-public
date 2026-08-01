@@ -93,6 +93,17 @@ namespace OutlookQuickMove
                     return;
                 }
 
+                // Do not let a single StoreAdd notification create the initial baseline. Outlook
+                // may raise these notifications gradually while the profile is still mounting. If
+                // the baseline is currently absent, persisting the first notification would make
+                // the hot path believe the profile contains only that one store and it would skip
+                // the intended one-time full bootstrap scan.
+                if (!StoreFilterSettings.HasAnyStoreRoots())
+                {
+                    QuickMoveLog.Write("store add notification ignored because the store-root baseline is not initialized yet.");
+                    return;
+                }
+
                 var entry = OutlookFolderEnumerator.CreateStoreFilterEntry(store);
                 if (entry == null || !entry.HasRootIdentity)
                 {

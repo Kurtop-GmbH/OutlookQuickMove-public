@@ -802,11 +802,19 @@ namespace OutlookQuickMove
 
         private static FolderEnumerationResult RefreshFolderList(Outlook.Application application)
         {
-            // Store roots are maintained by the StoreAdd tracker and Settings. A normal folder
-            // refresh therefore only drops the index and walks the already known roots. This avoids
-            // the additional full Stores scan that made Refresh feel stalled on large profiles.
+            // This is the explicit recovery path, so rebuild the store-root baseline as well as the
+            // folder index. Relying only on the saved roots makes Refresh unable to recover when a
+            // profile reset, deployment refresh or interrupted startup left that baseline partial.
+            var stores = OutlookFolderEnumerator.RefreshStoreRoots(application);
             OutlookFolderEnumerator.InvalidateCache();
-            return OutlookFolderEnumerator.GetMailFolders(application);
+            var folders = OutlookFolderEnumerator.GetMailFolders(application);
+
+            foreach (var error in stores.Errors)
+            {
+                folders.Warnings.Add(FolderWarningKind.StoreUnreadable, error);
+            }
+
+            return folders;
         }
 
         private static void ShowGoToFolderEnumerationWarnings(FolderEnumerationWarnings folderWarnings)
