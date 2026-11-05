@@ -403,3 +403,15 @@ mail, and logging instead of failing silently).
 ## License
 
 [MIT](LICENSE) © r404r
+
+<!-- kurtop-odoo-project:start -->
+## Project documentation and work tracking
+
+[Project documentation, backlog and collaboration in Odoo](https://odoo.xaas-group.ch/odoo/project.project/1115?cids=1)
+
+Odoo is the source of truth for project scope, tasks, priorities, acceptance and
+handover status. This repository contains the source code, technical setup and
+code review. Odoo access requires an authorized account; this link does not grant
+access. Reference the relevant Odoo task in a change/PR and record its resulting
+PR, commit and validation evidence in Odoo.
+<!-- kurtop-odoo-project:end -->
