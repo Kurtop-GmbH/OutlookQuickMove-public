@@ -15,6 +15,14 @@ User guide:
 - [Installation and User Guide](docs/USER_GUIDE.md)
 - [安装和使用指南](docs/USER_GUIDE.zh-CN.md)
 
+## Screenshot
+
+<img src="docs/assets/user-guide/03-quick-move-dialog.png" alt="Quick Move folder picker from the existing illustrated guide" width="720">
+
+This existing guide capture shows the earlier folder-picker layout; the current
+combined picker also supports Copy and Go to Folder. See the
+[illustrated user guide](docs/USER_GUIDE.md) for the complete workflow.
+
 ## Features
 
 - **Thunderbird-style action picker** — switch between `Move`, `Copy`, and `Go to Folder` in one
